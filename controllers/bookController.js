@@ -25,10 +25,17 @@ const getBooksPage = async (req, res, next) => {
       }
     }
 
+
     // 정렬 기준 설정. 조건에 맞춰서 order by 의 기준 속성을 정해준다.
     let orderByClause = '';
     if (sortedByWithDefault === 'author') orderByClause = 'ORDER BY b.book_author';
-    else orderByClause = 'ORDER BY b.book_title';
+    else if (sortedByWithDefault === 'categories') {
+      // SQL 쿼리에서 SELECT 한 별칭 'categories'를 기준으로 정렬
+      orderByClause = 'ORDER BY categories';
+    } else {
+        // 기본값은 'title'
+        orderByClause = 'ORDER BY b.book_title';
+    }
     orderByClause += ` ${sortOrderWithDefault}`;
 
     // 메인 쿼리를 검색, 정렬 조건들에 따라 생성한다.
