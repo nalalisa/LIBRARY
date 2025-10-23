@@ -31,7 +31,7 @@ const getBooksPage = async (req, res, next) => {
     if (sortedByWithDefault === 'author') orderByClause = 'ORDER BY b.book_author';
     else if (sortedByWithDefault === 'categories') {
       // SQL 쿼리에서 SELECT 한 별칭 'categories'를 기준으로 정렬
-      orderByClause = 'ORDER BY categories';
+      orderByClause = 'ORDER BY categories COLLATE utf8mb4_unicode_ci';
     } else {
         // 기본값은 'title'
         orderByClause = 'ORDER BY b.book_title';
@@ -59,7 +59,7 @@ const getBooksPage = async (req, res, next) => {
       LEFT JOIN (
           SELECT 
               bcg.book_id,
-              GROUP_CONCAT(DISTINCT c.category_name SEPARATOR ', ') AS categories
+              GROUP_CONCAT(DISTINCT c.category_name ORDER BY c.category_name ASC SEPARATOR ', ') AS categories
           FROM bookcategories bcg
           JOIN categories c ON bcg.category_id = c.category_id
           GROUP BY bcg.book_id
