@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .add-form {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 10px;
+    }
+    .add-form input {
+      padding: 0.4rem;
+      width: 250px;
+      margin-right: 0.5rem;
+    }
+    .add-form button {
+      padding: 0.4rem 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <%- include('../components/header') %>
+    <main>
+        
+      <div class="card">
+        <h2 class="mb-3"><%= title %></h2>
+        <div class="add-form">
+            <h3>Add New Category</h3>
+            <form action="/categories/add" method="POST">
+              <label for="category_name">Category Name:</label>
+              <input
+                type="text"
+                id="category_name"
+                name="category_name"
+                placeholder="Enter new category"
+                required
+              />
+              <button type="submit" class="btn btn-primary">Add</button>
+            </form>
+          </div>
+
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Books Linked</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% categories.forEach(category => { %>
+              <tr>
+                <td><%= category.id %></td>
+                <td><%= category.name %></td>
+                <td><%= category.book_count %></td>
+                <td>
+                  <form
+                    action="/categories/<%= category.id %>/delete"
+                    method="POST"
+                    style="display:inline"
+                  >
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+
+        
+      </div>
+    </main>
+  </div>
+</body>
+</html>

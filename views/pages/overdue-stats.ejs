@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .stats-summary {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .progress-bar {
+      height: 25px;
+      border-radius: 8px;
+      background-color: #e9ecef;
+      overflow: hidden;
+      width: 80%;
+      margin: 0.5rem auto;
+    }
+    .progress-fill {
+      height: 100%;
+      background-color: #dc3545;
+      text-align: right;
+      padding-right: 10px;
+      color: white;
+      line-height: 25px;
+      border-radius: 8px 0 0 8px;
+      transition: width 0.3s ease;
+    }
+    table {
+      width: 100%;
+    }
+    th, td {
+      text-align: center;
+      padding: 0.5rem;
+    }
+    .card {
+      max-width: 900px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <%- include('../components/header') %>
+
+    <main>
+      <div class="card">
+        <h2 class="mb-3"><%= title %></h2>
+
+        <div class="stats-summary">
+          <p><strong>Total Active Loans:</strong> <%= totalLoans %></p>
+          <p><strong>Overdue Loans:</strong> <%= overdueLoans %></p>
+          <p><strong>Overdue Rate:</strong> <%= overdueRate %>%</p>
+
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              style="width: <%= overdueRate %>%"
+            >
+              <%= overdueRate %>%
+            </div>
+          </div>
+        </div>
+
+        <h3>📚 Overdue Book List</h3>
+        <% if (overdueList.length === 0) { %>
+          <p class="text-muted">No overdue books at this moment.</p>
+        <% } else { %>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Loan ID</th>
+                <th>Book Title</th>
+                <th>Author</th>
+                <th>Borrower</th>
+                <th>Loan Date</th>
+                <th>Due Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% overdueList.forEach(item => { %>
+                <tr>
+                  <td>#<%= item.loan_id %></td>
+                  <td><%= item.book_title %></td>
+                  <td><%= item.book_author %></td>
+                  <td><%= item.borrower %></td>
+                  <td><%= item.loan_date %></td>
+                  <td style="color: red;"><%= item.due_date %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

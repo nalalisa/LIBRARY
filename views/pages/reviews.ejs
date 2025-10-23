@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .review-container {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .review-item {
+      border-bottom: 1px solid #ccc;
+      padding: 0.5rem 0;
+      position: relative;
+    }
+    .review-item:last-child {
+      border-bottom: none;
+    }
+    .review-item .delete-btn {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.3rem;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .review-form {
+      margin-top: 1rem;
+      border-top: 1px solid #ccc;
+      padding-top: 1rem;
+      display: none;
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .stars {
+      color: #ffcc00;
+      font-size: 1.1rem;
+      letter-spacing: 0.05rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <%- include('../components/header') %>
+
+    <main>
+      <div class="card">
+        <h2 class="mb-3"><%= title %></h2>
+
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Book Title</th>
+              <th>Author</th>
+              <th>Categories</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% books.forEach(book => { %>
+              <tr class="book-row">
+                <td><%= book.title %></td>
+                <td><%= book.author %></td>
+                <td><%= book.categories || '-' %></td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-primary toggle-reviews" data-book-id="<%= book.id %>" data-visible="false">
+                      Show Reviews
+                    </button>
+                    <% if (userId) { %>
+                      <button class="btn btn-secondary toggle-form" data-book-id="<%= book.id %>" data-visible="false">
+                        Add Review
+                      </button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <tr id="reviews-for-<%= book.id %>">
+                <td colspan="4">
+                  <div class="review-container" id="container-<%= book.id %>"></div>
+
+                  <% if (userId) { %>
+                    <form
+                      class="review-form"
+                      id="form-<%= book.id %>"
+                      method="POST"
+                      action="/books/<%= book.id %>/reviews"
+                    >
+                      <label>Rating:</label>
+                      <select name="rating" required>
+                        <option value="5">★★★★★ (5)</option>
+                        <option value="4">★★★★ (4)</option>
+                        <option value="3">★★★ (3)</option>
+                        <option value="2">★★ (2)</option>
+                        <option value="1">★ (1)</option>
+                      </select>
+                      <textarea
+                        name="comment"
+                        rows="2"
+                        required
+                        placeholder="Write your comment..."
+                      ></textarea>
+                      <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const currentUserId = "<%= userId || '' %>";
+
+      // 리뷰 보기 / 숨기기
+      document.querySelectorAll('.toggle-reviews').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const bookId = btn.dataset.bookId;
+          const container = document.getElementById(`container-${bookId}`);
+          const form = document.getElementById(`form-${bookId}`);
+          const isVisible = btn.dataset.visible === 'true';
+
+          if (isVisible) {
+            container.style.display = 'none';
+            if (form) form.style.display = 'none';
+            btn.textContent = 'Show Reviews';
+            btn.dataset.visible = 'false';
+            return;
+          }
+
+          btn.textContent = 'Loading...';
+          try {
+            const res = await fetch(`/api/books/${bookId}/reviews`);
+            const reviews = await res.json();
+
+            let html = '';
+            if (reviews.length === 0) {
+              html += `<p class="text-muted">No reviews yet.</p>`;
+            } else {
+              reviews.forEach(r => {
+                const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                const isMine =
+                  currentUserId && String(currentUserId) === String(r.account_id);
+                html += `
+                  <div class="review-item" id="review-${r.review_id}">
+                    <strong>${r.username}</strong>
+                    <div class="stars">${stars}</div>
+                    <p>${r.comment}</p>
+                    ${
+                      isMine
+                        ? `<button class="delete-btn" data-book-id="${bookId}" data-review-id="${r.review_id}">Delete</button>`
+                        : ''
+                    }
+                  </div>
+                `;
+              });
+            }
+
+            container.innerHTML = html;
+            container.style.display = 'block';
+            btn.textContent = 'Hide Reviews';
+            btn.dataset.visible = 'true';
+
+            // 삭제 버튼 
+            container.querySelectorAll('.delete-btn').forEach(delBtn => {
+              delBtn.addEventListener('click', async e => {
+                e.preventDefault();
+                const bookId = delBtn.dataset.bookId;
+                const reviewId = delBtn.dataset.reviewId;
+                if (!confirm('Delete this review?')) return;
+
+                const res = await fetch(
+                  `/books/${bookId}/reviews/${reviewId}/delete`,
+                  { method: 'DELETE' }
+                );
+                if (res.ok) {
+                  document.getElementById(`review-${reviewId}`).remove();
+                } else {
+                  alert('Failed to delete review.');
+                }
+              });
+            });
+          } catch (err) {
+            console.error(err);
+            container.innerHTML =
+              '<p class="text-danger">Failed to load reviews.</p>';
+          } finally {
+            btn.textContent =
+              btn.dataset.visible === 'true' ? 'Hide Reviews' : 'Show Reviews';
+          }
+        });
+      });
+
+      // 리뷰 작성 폼 토글
+      document.querySelectorAll('.toggle-form').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const bookId = btn.dataset.bookId;
+          const form = document.getElementById(`form-${bookId}`);
+          const isVisible = btn.dataset.visible === 'true';
+
+          if (isVisible) {
+            form.style.display = 'none';
+            btn.textContent = 'Add Review';
+            btn.dataset.visible = 'false';
+          } else {
+            form.style.display = 'block';
+            btn.textContent = 'Cancel';
+            btn.dataset.visible = 'true';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

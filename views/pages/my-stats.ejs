@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .card {
+      max-width: 800px;
+      margin: auto;
+    }
+    .stats-summary {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .progress-bar {
+      width: 100%;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      height: 20px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background-color: #007bff;
+      text-align: right;
+      color: white;
+      padding-right: 8px;
+      font-size: 0.8rem;
+      line-height: 20px;
+      border-radius: 5px 0 0 5px;
+      transition: width 0.3s ease;
+    }
+    th, td {
+      text-align: center;
+      padding: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <%- include('../components/header') %>
+
+    <main>
+      <div class="card">
+        <h2 class="mb-3"><%= title %></h2>
+
+        <div class="stats-summary">
+          <p><strong>Total Books Borrowed:</strong> <%= totalBorrowed %></p>
+        </div>
+
+        <% if (stats.length === 0) { %>
+          <p class="text-muted">You have not borrowed any books yet.</p>
+        <% } else { %>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Category</th>
+                <th>Borrow Count</th>
+                <th>Ratio</th>
+                <th>Chart</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% stats.forEach(s => { %>
+                <tr>
+                  <td><%= s.rank %></td>
+                  <td><%= s.category %></td>
+                  <td><%= s.borrow_count %></td>
+                  <td><%= s.ratio %>%</td>
+                  <td>
+                    <div class="progress-bar">
+                      <div
+                        class="progress-fill"
+                        style="width: <%= s.ratio %>%"
+                      >
+                        <%= s.ratio %>%
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
